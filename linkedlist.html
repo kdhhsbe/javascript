@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>김도현 이력서</title>
+</head>
+
+<body>
+  <script>
+
+  function Node(data){
+
+    this.data = data;
+    this.next = null;
+    this.prev = null;
+
+  }
+
+  function LinkedList(){
+
+    this.head = null;
+    this.tail = null;
+    this.length = 0;
+
+  }
+
+  LinkedList.prototype.append = function( data ){
+    var node = new Node( data ),
+        curr = null;
+
+    if( !this.head ){
+
+      this.head = node;
+      this.tail = node;
+
+    }else{
+
+      curr = this.head;
+      while( curr.next ){
+
+        curr = curr.next;
+
+      }
+
+      node.prev = curr;
+      curr.next = node;
+      this.tail = node;
+
+    }
+
+    this.length += 1;
+    return node;
+
+  }
+
+  LinkedList.prototype.print = function(){
+    var str,
+        head = this.head;
+
+    while( head ){
+
+      str += head.data + "\n";
+      head = head.next;
+
+    }
+
+    console.log(str);
+  }
+
+  LinkedList.prototype.indexOf = function( data ){
+    var head = this.head,
+        index = -1;
+
+    while( head ){
+
+      index += 1;
+
+      if( head.data === data ){
+
+        return index;
+
+      }
+
+      head = head.next;
+
+    }
+
+    return -1;
+
+  }
+
+  LinkedList.prototype.removeAt = function( pos ){
+    var curr = this.head,
+        prev,
+        index = 0;
+
+    if( pos < 0 || this.length < pos+1 ){
+
+      return -1;
+
+    }
+
+    if( pos === 0 ){
+
+      this.head = curr.next;
+
+    }else{
+
+      while( index < pos ){
+
+        prev = curr;
+        curr = curr.next;
+        index += 1;
+
+      }
+
+      prev.next = curr.next;
+
+    }
+
+    this.length -= 1;
+    curr.next = null;
+    return curr.data;
+
+  }
+
+  LinkedList.prototype.remove = function( data ){
+      var index = this.indexOf(data);
+      this.removeAt(index);
+  }
+
+  LinkedList.prototype.insert = function( pos, data ){
+      var node = new Node(data);
+      var curr = this.head;
+      var prev = null;
+      var index = -1;
+
+      if( pos < 0 || this.length < pos+1 ){
+
+        return false;
+
+      }
+
+      if( pos === 0 ){
+
+          node.next = this.head;
+          this.head = node;
+
+      }else{
+
+          while( index < pos ){
+
+              index += 1;
+              prev = curr;
+              curr = curr.next;
+
+          }
+
+          prev.next = node;
+          node.next = curr;
+
+      }
+
+      this.length += 1;
+      return true;
+
+  }
+
+  LinkedList.prototype.size = function(){
+      return this.length;
+  }
+
+  LinkedList.prototype.isEmpty = function(){
+      return this.length === 0
+  }
+
+
+  </script>
+</body>
+</html>
