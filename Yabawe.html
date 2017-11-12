@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>야바위</title>
+
+    <style>
+
+        #yabawe{
+          width:90%;
+          height:80px;
+          margin:auto auto;
+          position:relative;
+        }
+
+    </style>
+</head>
+
+<body>
+
+	<section id="game">
+		<h1>야바위</h1>
+		<h3>개요</h3>
+		<p>주사위가 숨어있는 컵을 찾는 게임.</p>
+		<hr/>
+		<div id="condition" class="form-inline">
+			 <label>컵수: </label>
+			 <select id="cupsCnt">
+				 <option value="4">4</option>
+				 <option value="5" selected>5</option>
+				 <option value="6">6</option>
+				 <option value="7">7</option>
+				 <option value="8">8</option>
+			  </select>
+			  <label>섞는 횟수: </label>
+			  <select id="suffleTime">
+				  <option value="4">4</option>
+				  <option value="5">5</option>
+				  <option value="6" selected>6</option>
+				  <option value="7">7</option>
+				  <option value="8">8</option>
+			   </select>
+			   <label>duration:</label>
+			   <input id="duration" class="form-control input-sm" value="500">
+			  <button id="startBtn" type="button" class="btn btn-default btn-lg">시작</button>
+			  <button id="initBtn" type="button" class="btn btn-default btn-lg">초기화</button>
+		  </div>
+		  <div>
+			<div id="gameProgressExplanation" class="alert alert-success"> 시작버튼을 누르세요 </div>
+		  </div>
+		  <div id="yabawe"></div>		  
+	</section>
+
+    <script>
+    (function(){
+
+      var GAME = GAME || {};
+      //애니메이션 컴포넌트
+      GAME.anim = (function(){
+
+          function noop() {}
+
+          //엑셀레이터 정의
+          function Accelerate(){
+            this.curveSin = function(t,h){
+              return Math.sin((180 * t) * Math.PI / 180) * h;
+            }
+
+            this.linear = function(t){
+              return t;
+            }
+          }
+
+          function anim(cond){
+            var from = cond.from || [0,0],
+                to =  cond.to || [100,0],
+                frame = cond.frame || noop,
+                duration = cond.duration || 500,
+                movement = cond.movement || 'line',
+                height = cond.height || 50,
+                complete = cond.complete || noop;
+
+            var diffs = from.map(function (val, idx) {
+              return to[idx] - val;
+            });
+
+
+              var timeoutId = 0;
+              var accel = new Accelerate();
+
+              var runner = function(start){
+                return function tick(){
+                  var elapsed = new Date() - start;  									 // 현재시간 - 시작시간
+                  var progress = Math.min(1, elapsed / duration || 0); //진행시간/동작시간 으로 진행률
+                  var values = from.map(function (val, idx) {
+                    if( movement == 'line' ) {
+                      return (diffs[idx] * accel.linear(progress)) + val;
+                    }else if( movement == 'curve' ){
+                      if( idx == 0 ) {
+                        return (diffs[idx] * accel.linear(progress)) + val;
+                      }else{
+                        return accel.curveSin(progress, height);
+                      }
+                    }
+                  });
+
+                  frame.apply(null, [values]);
+                  timeoutId = window.requestAnimationFrame(tick);
+
+                  if(progress >= 1){
+                    window.cancelAnimationFrame(timeoutId);
+                    complete();
+                  }
+                }
+              }
+
+              return {
+                run:function(start){
+                  var start = new Date();
+                  return runner(start);
+                }
+              }
+          }
+          return anim;
+      })();
+
+      GAME.animSync = (function(){
+        return function(){
+          var anim = GAME.anim,
+              moveList = arguments[0]||[],
+              duration = arguments[1]||500,
+              currMoveSet = [],
+              completeCallback = arguments[2]||{};
+
+          function exec(updown, target, from, to){
+            var currCup = target,
+                h = updown==0? 50:-50,
+                fromX = [from * 60],
+                toX = [to * 60];
+
+                fromX.push(0);
+                toX.push(0);
+
+            var animObj = anim({
+              from: fromX,
+              to: toX,
+              duration: duration,
+              frame: function(val) {
+                currCup.isMoveing = true;
+                currCup.cup.style.left = val[0] + "px";
+                currCup.cup.style.top = val[1] + "px";
+              },
+              movement: 'curve',
+              height: h,
+              complete: function() {
+                currCup.isMoveing = false;
+                currCup.currentLocationIndex = to;
+                obj.start();
+              }
+            }).run()();
+          }
+
+          var obj = {
+            tick:function(){
+              currMoveSet = moveList.shift();
+              var from = currMoveSet[0],
+                  to = currMoveSet[1];
+
+              exec(0, from, from.currentLocationIndex, to.currentLocationIndex);
+              exec(1, to, to.currentLocationIndex, from.currentLocationIndex);
+            },
+            start:function(){
+              var flag = true;
+              currMoveSet.forEach(function(obj, index){
+                flag = flag && !obj.isMoveing;
+              });
+
+              if(flag){
+                if(moveList.length != 0){
+                  this.tick();
+                }else{
+                  this.complete(completeCallback);
+                }
+              }
+            },
+            complete:function(callback){
+              callback();
+            }
+          };
+          return obj
+        }
+      })();
+
+      // cup정의
+      GAME.Cup = (function(){
+        function Cup(node, index){
+            this.currentLocationIndex = index;
+            this.isMoveing = false;
+            this.diceYn = false;
+
+            this.cup = document.createElement('div');
+            this.cup.id = index;
+            this.cup.style.display = "inline-block";
+            this.cup.style.position = "absolute";
+            this.cup.style.width = "50px";
+            this.cup.style.height = "50px";
+            this.cup.style.left = index * 60 + "px";
+            this.cup.style.backgroundColor = "#11ffb7";
+            this.cup.style.border = "1px solid black";
+            this.cup.setAttribute("class", "cup");
+            document.getElementById(node).appendChild(this.cup);
+          }
+
+          Cup.prototype.setDice = function(flag){
+              this.diceYn = flag;
+          };
+
+          Cup.prototype.setCupText = function(str){
+              this.cup.textContent = str || '';
+          };
+
+          return Cup;
+      })();
+
+      //야바위 컴포넌트
+      GAME.Yabawe = function(cond){
+        //컵과 애니메이션 참조
+        var Cup = GAME.Cup,
+            animSync = GAME.animSync,
+            cupWithDice = null,
+            cups = [],
+            eventPool = {},
+            cupCnt = cond.cupCnt || 4,
+            suffleTime =  cond.suffleTime || 5,
+            duration =  cond.duration || 500,
+            checkAnswer = cond.checkAnswer || noop,
+            progressDescription = document.getElementById('gameProgressExplanation'),
+            yabawe = document.getElementById('yabawe');
+
+        function noop() {}
+
+        //컵을 생성한다
+        var createCups = function(cnt){
+          for(var i = 0; i<cnt; i++){
+            cups.push(new Cup("yabawe", i));
+          }
+        };
+
+        // 컵 섞는게 끝나면 컵 선택 이벤트걸기
+        var addEventClick = function(callback){
+            eventPool.checkAnswerHandler = function(e){
+              var flag = e.target.id == cupWithDice.cup.id;
+              if(e.eventPhase === 2) return false;
+              if(flag){
+                e.target.textContent='주사위';
+              }else{
+                e.target.textContent='땡';
+              }
+
+              callback(flag);
+            }
+            yabawe.addEventListener('click', eventPool.checkAnswerHandler, false);
+            progressDescription.textContent = '주사위가 들어있는 컵을 선택하세요.';
+        };
+
+        // 컵을 섞는다
+        var suffleCups = function(){
+            var suffleCnt = 0,
+                moveCupList = [],
+                currMoveSet = [],
+                cupWithDiceNum = suffleCnt == 0 ? parseInt(cupWithDice.cup.id, 10) : undefined,
+                that = this;
+
+            for(var i = 0; i<suffleTime; i++){
+              var arr = getRandomNumber(cupWithDiceNum, cupCnt);
+              var moveSet = arr.map(function(obj, index){
+                  return cups[obj];
+              });
+              moveCupList.push(moveSet);
+            }
+
+            var anim = animSync(moveCupList, duration, function(){addEventClick(checkAnswer)});
+            anim.start();
+
+            function getRandomNumber(cupWithDiceNum, boxCnt){
+              var randomNumberArray = [],
+                  first =  cupWithDiceNum || Math.floor(Math.random() * boxCnt),
+                  second = Math.floor(Math.random() * boxCnt);
+
+              if(first === second){
+                return getRandomNumber(cupWithDiceNum, boxCnt);
+              }else{
+                randomNumberArray.push(first, second);
+                randomNumberArray.sort(function(a,b){
+                  return a-b;
+                });
+                return randomNumberArray;
+              }
+            }
+        };
+
+        return {
+          //야바위 초기화
+          initYabawe: function(){
+              createCups(cupCnt);
+              var num = Math.floor(Math.random() * cupCnt);
+              cups[num].setDice(true);
+              cups[num].setCupText('주사위');
+              cupWithDice = cups[num];
+          },
+
+          // 게임시작
+          startGame: function(){
+              cupWithDice.setCupText();
+              suffleCups();
+              progressDescription.textContent = '섞는중................';
+          },
+
+          //컵, 이벤트 삭제
+          distroy: function(){
+              cups.forEach(function(cup, index){
+                yabawe.removeChild(cup.cup);
+              });
+              cups = [];
+              yabawe.removeEventListener('click', eventPool.checkAnswerHandler);
+              progressDescription.textContent = '시작버튼을 누르세요.';
+              progressDescription.classList.remove('alert-danger');
+              progressDescription.classList.add('alert-success');
+          },
+          setCupCnt: function(cnt){
+            cupCnt = cnt;
+          },
+          setSuffleTime: function(cnt){
+            suffleTime = cnt;
+          },
+          setDuration: function(cnt){
+            duration = cnt;
+          }
+        };
+      }
+
+      //게임 생성
+      var yabawe = GAME.Yabawe({
+        cupCnt: 5,
+        suffleTime: 6,
+        duration: 500,
+        checkAnswer:function(isAnswer){
+          var progressStep = document.getElementById('gameProgressExplanation');
+          if(isAnswer){
+            progressStep.textContent = '정답!천재';
+            progressStep.classList.remove('alert-danger');
+            progressStep.classList.add('alert-success');
+          }else{
+            progressStep.textContent = '땡!다시 선택하세요.' ;
+            progressStep.classList.remove('alert-success');
+            progressStep.classList.add('alert-danger');
+          }
+        }
+      });
+
+      yabawe.initYabawe();
+
+      var sb = document.getElementById('startBtn');
+      var ib = document.getElementById('initBtn');
+      var cs = document.getElementById('cupsCnt');
+      var ss = document.getElementById('suffleTime');
+      var duration = document.getElementById('duration');
+
+      sb.addEventListener("click", function(){
+        yabawe.startGame();
+      });
+
+      ib.addEventListener("click", function(){
+        yabawe.distroy();
+        yabawe.initYabawe();
+      });
+
+      cs.addEventListener("change", changeEventHandler);
+      ss.addEventListener("change", changeEventHandler);
+      duration.addEventListener("change", changeEventHandler);
+
+      function changeEventHandler(){
+        var csValue = cs.value;
+        var ssValue = ss.value;
+        var durationValue = duration.value;
+        yabawe.distroy();
+        yabawe.setCupCnt(csValue);
+        yabawe.setSuffleTime(ssValue);
+        yabawe.setDuration(durationValue);
+        yabawe.initYabawe();
+      }
+    })();
+    </script>
+</body>
+
+</html>
