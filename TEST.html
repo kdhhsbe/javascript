@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>이중 링크드 리스트</title>
+</head>
+
+<body>
+
+  <div id="outer">
+    <p>outer 요소</p>
+    <a id="inner" href="http://www.wings.msn.to"> inner요소</a>
+  </div>
+
+  <script>
+    var result;
+    var value = 'Javascript\nMultiLine\nMultiLine';
+    result = value.match(/^Multi/);
+    console.log(result);
+
+    var value = 'Javascript\nMultiLine\nMultiLine';
+    result = value.match(/^Multi/m);
+    console.log(result);
+
+    var value = 'Javascript\nMultiLine\nMultiLine';
+    result = value.match(/^Multi/g);
+    console.log(result);
+
+    var value = 'Javascript\nMultiLine\nMultiLine';
+    result = value.match(/^Multi/gm);
+    console.log(result);
+
+    var value = 'Javascript\nMultiLine\nMultiLine';
+    result = value.match(/Multi/);
+    console.log(result);
+
+    var value = 'Javascript\nMultiLine\nMultiLine';
+    result = value.match(/Multi/igm);
+    console.log(result);
+
+    var value = '12_34_56';
+    result = value.match(/23|34|_34|56/);
+    console.log(result);
+
+    var value = '12_34_56';
+    result = value.match(/23|56|34/);
+    console.log(result);
+
+    var value = '12_34_56';
+    result = value.match(/12|34|56/g);
+    console.log('/12|34|56/g', result);
+
+    result = /bc|c/.exec("abc");
+    console.log(result);
+
+    result = /c|bc/.exec("abc");
+    console.log(result);
+
+    result = /c|bc|abc/.exec("abc");
+    console.log(result);
+
+    result = /c|bc|a|abc/.exec("abc");
+    console.log(result);
+  </script>
+</body>
+</html>
