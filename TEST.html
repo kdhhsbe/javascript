@@ -65,6 +65,55 @@
 
     result = /c|bc|a|abc/.exec("abc");
     console.log(result);
+
+    var value = 'sports';
+    result = value.match(/.s/);
+    console.log('.s', result);
+
+    var value = '사랑해 사모해 사랑함';
+    result = value.match(/사.해/g);
+    console.log('사.해/g', result);
+
+    var value = '   ';
+    result = value.match(/|t/);
+    console.log('|t', result);
+    if( result ){
+        console.log('공백문자');
+    }
+
+    var value = '|u000c';
+    result = value.match(/|f/);
+
+    if( result ){
+        console.log('공백문자');
+    }
+    console.log('|f', result);
+
+    var value = '|u000A';
+    result = value.match(/|n/);
+
+    if( result ){
+        console.log('공백문자');
+    }
+    console.log('|n', result);
+
+    var value = 'Sports';
+    result = value.match(/s/);
+
+    for(var i=0; i<result.length; i++){
+        console.log(result[i]);
+    }
+    console.log(result.index);
+    console.log(result.input);
+
+
+
+
+
+
+
+
+
   </script>
 </body>
 </html>
