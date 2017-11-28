@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>이중 링크드 리스트</title>
+</head>
+
+<body>
+  <script>
+
+  function Node(data){
+
+    this.data = data;
+    this.next = null;
+    this.prev = null;
+
+  }
+
+  function DoubleLinkedList(){
+
+    this.head = null;
+    this.tail = null;
+    this.length = 0;
+
+  }
+
+  DoubleLinkedList.prototype.append = function( data ){
+    var node = new Node( data ),
+        curr = null;
+
+    if( !this.head ){
+
+      this.head = node;
+      this.tail = node;
+
+    }else{
+
+      curr = this.head;
+      while( curr.next ){
+
+        curr = curr.next;
+
+      }
+
+      node.prev = curr;
+      curr.next = node;
+      this.tail = node;
+
+    }
+
+    this.length += 1;
+    return node;
+
+  }
+
+  DoubleLinkedList.prototype.print = function(){
+    var str,
+        head = this.head;
+
+    while( head ){
+
+      str += head.data + "\n";
+      head = head.next;
+
+    }
+
+    console.log(str);
+  }
+
+  DoubleLinkedList.prototype.indexOf = function( data ){
+    var head = this.head,
+        index = -1;
+
+    while( head ){
+
+      index += 1;
+
+      if( head.data === data ){
+
+        return index;
+
+      }
+
+      head = head.next;
+
+    }
+
+    return -1;
+
+  }
+
+  DoubleLinkedList.prototype.removeAt = function( pos ){
+
+      var curr = null;
+
+      if( !this.isPositionValidate ){
+
+          return false;
+
+      }
+
+      if( pos === 0 ){
+
+          curr = this.head;
+          this.head = curr.next;
+          this.head.prev = null;
+
+      }else if( pos === this.length-1 ){
+
+          curr = this.tail;
+          this.tail = curr.prev;
+          this.tail.next = null;
+
+      }else{
+
+          curr = this.getNode( pos );
+          var prev = curr.prev,
+              next = curr.next;
+
+          prev.next = next;
+          next.prev = prev;
+
+      }
+
+      this.length -= 1;
+
+      return curr.date;
+
+  }
+
+  DoubleLinkedList.prototype.remove = function( data ){
+      var index = this.indexOf(data);
+      this.removeAt(index);
+  }
+
+  DoubleLinkedList.prototype.insert = function( pos, data ){
+      var node = new Node(data);
+
+      if( !this.isPositionValidate ){
+
+        return false;
+
+      }
+
+      console.log(pos, this.length);
+      if( pos === 0 ){
+
+          node.next = this.head;
+          this.head = node;
+
+      }else if( pos === this.length-1 ){
+
+          curr = this.tail;
+          curr.next = node;
+          this.tail = node;
+          this.tail.prev = curr;
+
+      }else{
+
+          var prev = this.getNode( pos-1 );
+          var next = prev.next;
+
+          prev.next = node;
+          next.prev = node;
+
+          node.prev = prev;
+          node.next = next;
+
+      }
+
+      this.length += 1;
+
+      return true;
+
+  }
+
+  DoubleLinkedList.prototype.getNode = function( pos ){
+
+      var curr = null;
+      var index = 0;
+
+      if(!this.isPositionValidate){
+
+        return false;
+
+      }
+
+      if( pos < this.length/2 ){
+
+        curr = this.head;
+        index = 0;
+
+        while( index++ < pos){
+            curr = curr.next;
+        }
+
+        return curr;
+
+      }else{
+
+        curr = this.tail;
+        index = this.length-1;
+
+        while( index-- > pos){
+            curr = curr.prev;
+        }
+
+        return curr;
+      }
+
+
+  }
+
+  DoubleLinkedList.prototype.isPositionValidate = function( pos ){
+
+      var length = this.length-1;
+
+      if( pos < 0 || pos > length ){
+
+        return false;
+
+      }else{
+
+        return true;
+
+      }
+  }
+
+  DoubleLinkedList.prototype.size = function(){
+      return this.length;
+  }
+
+  DoubleLinkedList.prototype.isEmpty = function(){
+      return this.length === 0
+  }
+
+
+  var dlk = new DoubleLinkedList();
+  dlk.append(11);
+  dlk.append(22);
+  dlk.append(33);
+  dlk.append(44);
+  dlk.append(55);
+  dlk.append(66);
+  dlk.insert(3, 333);
+  dlk.print();
+  dlk.insert(0, 0);
+  dlk.print();
+  dlk.insert(7, 777);
+  dlk.print();
+  dlk.removeAt(0);
+  dlk.print();
+  dlk.removeAt(7);
+  dlk.print();
+  </script>
+</body>
+</html>
